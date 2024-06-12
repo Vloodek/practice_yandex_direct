@@ -3,9 +3,28 @@ import time
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
+import psutil
 from uniter import remote_call
 
-def get_page_data(url):
+# Функция для получения идентификаторов процессов Chrome перед запуском
+def get_current_chrome_pids():
+    chrome_pids = []
+    for process in psutil.process_iter():
+        if process.name() == "chrome.exe" or process.name() == "chromedriver.exe":
+            chrome_pids.append(process.pid)
+    return set(chrome_pids)
+
+# Функция для закрытия процессов Chrome, запущенных скриптом
+def close_new_chrome_processes(initial_pids):
+    current_pids = get_current_chrome_pids()
+    new_pids = current_pids - initial_pids
+    for pid in new_pids:
+        try:
+            psutil.Process(pid).terminate()
+        except psutil.NoSuchProcess:
+            continue
+
+def get_page_data(url, initial_pids):
     options = uc.ChromeOptions()
     options.add_argument('--headless')
     options.add_argument('--disable-blink-features=AutomationControlled')
@@ -47,6 +66,7 @@ def get_page_data(url):
         headings = ""
     finally:
         driver.quit()
+        close_new_chrome_processes(initial_pids)
     
     return {
         "url": url,
@@ -57,13 +77,14 @@ def get_page_data(url):
     }
 
 def main(urls):
+    initial_pids = get_current_chrome_pids()
     data = []
     counter = 0
     for url in urls:
         print(counter, "/", len(urls))
-        page_data = get_page_data(url)
+        page_data = get_page_data(url, initial_pids)
         data.append(page_data)
-        counter+=1
+        counter += 1
     print(counter, "/", len(urls))
     
     with open('parsed_data.json', 'w', encoding='utf-8') as file:
@@ -73,8 +94,7 @@ def main(urls):
 
 if __name__ == "__main__":
     urls = [
-        "https://colizeumarena.com/blog/club/colizeum-irkutsk/",
-        "https://cyberxcommunity.ru/clubs/",
+        "https://sibinpex-tank.ru/?utm_source=yandex&utm_medium=cpc&utm_campaign=poisk_tank_500&utm_content={ad_id}&utm_term={keyword}&calltouch_tm=yd_c:{campaign_id}_gb:{gbid}_ad:{ad_id}_ph:{phrase_id}_st:{source_type}_pt:{position_type}_p:{position}_s:{source}_dt:{device_type}_reg:{region_id}_ret:{retargeting_id}_apt:{addphrasestext}"
     ]
     
     main(urls)

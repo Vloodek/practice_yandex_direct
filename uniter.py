@@ -54,7 +54,7 @@ def process_item(item):
 
 def remove_contacts(text):
     # Шаблон для поиска номеров телефонов и адресов электронной почты
-    pattern = r'\b\d{2}[-\s]?\d{2}[-\s]?\d{2}\b|\b\d{6}\b|[\w\.-]+@[\w\.-]+\.\w+\b'
+    pattern = r'\b(?:\+\d{1,2}\s?)?(?:\(\d{3}\)|\d{3})[-.\s]?\d{3}[-.\s]?\d{2}[-.\s]?\d{2}\b|\b\d{6}\b|\b\(\d{3}\)\s?\d{3}-\d{2}-\d{2}\b|\b\d{4}\s?\d{6}\b|\b\(\d{4}\)\s?\d{2}-\d{2}-\d{2}\b|\b\(\d{5}\)\s?\d{1}-\d{2}-\d{2}\b|\b\d{5}\s?\d{1}-\d{2}-\d{2}\b|\b\(\d{6}\)\s?\d{2}-\d{2}-\d{2}\b|\b\d{10,}\b'
     
     # Замена найденных совпадений на пустую строку
     clean_text = re.sub(pattern, '', text)
@@ -66,6 +66,8 @@ def remove_contacts(text):
     clean_text = re.sub(r'\s+', ' ', clean_text).strip()
 
     return clean_text
+
+
 
 def remote_call():
     main()
